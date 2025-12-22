@@ -4,7 +4,7 @@ import { logActivity } from '../utils/activityLogger';
 
 export const getAllStudents = async (req: Request, res: Response): Promise<void> => {
   try {
-    const students = await Student.find().sort({ createdAt: -1 });
+    const students = await Student.find({ isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch students', details: (error as Error).message });
@@ -20,7 +20,7 @@ export const getStudentsByClass = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const students = await Student.find({ className }).sort({ createdAt: -1 });
+    const students = await Student.find({ className, isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch students', details: (error as Error).message });
@@ -55,8 +55,12 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
 
-    const deletedStudent = await Student.findByIdAndDelete(id);
-    
+    const deletedStudent = await Student.findOneAndUpdate(
+      { _id: id, isDeleted: false },
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
+
     if (!deletedStudent) {
       res.status(404).json({ error: 'Student not found' });
       return;
@@ -78,8 +82,8 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
     const { id } = req.params;
     const { name, className, email, status } = req.body;
 
-    const updatedStudent = await Student.findByIdAndUpdate(
-      id,
+    const updatedStudent = await Student.findOneAndUpdate(
+      { _id: id, isDeleted: false },
       { name, className, email, status },
       { new: true, runValidators: true }
     );

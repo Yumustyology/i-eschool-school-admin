@@ -4,7 +4,7 @@ import { logActivity } from '../utils/activityLogger';
 
 export const getAllClasses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const classes = await Class.find().sort({ createdAt: -1 });
+    const classes = await Class.find({ isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json(classes);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch classes', details: (error as Error).message });
@@ -39,7 +39,11 @@ export const deleteClass = async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params;
 
-    const deletedClass = await Class.findByIdAndDelete(id);
+    const deletedClass = await Class.findOneAndUpdate(
+      { _id: id, isDeleted: false },
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     
     if (!deletedClass) {
       res.status(404).json({ error: 'Class not found' });
@@ -62,8 +66,8 @@ export const updateClass = async (req: Request, res: Response): Promise<void> =>
     const { id } = req.params;
     const { name, teacher, description, numberOfStudents } = req.body;
 
-    const updatedClass = await Class.findByIdAndUpdate(
-      id,
+    const updatedClass = await Class.findOneAndUpdate(
+      { _id: id, isDeleted: false },
       { name, teacher, description, numberOfStudents },
       { new: true, runValidators: true }
     );

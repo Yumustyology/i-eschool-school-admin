@@ -5,6 +5,8 @@ export interface IClass extends Document {
   teacher: string;
   numberOfStudents: number;
   description: string;
+  isDeleted: boolean;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +31,15 @@ const classSchema = new Schema<IClass>(
     description: {
       type: String,
       default: '',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   {

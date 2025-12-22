@@ -5,6 +5,8 @@ export interface IStudent extends Document {
   className: string;
   email: string;
   status: 'Active' | 'Inactive';
+  isDeleted: boolean;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +31,15 @@ const studentSchema = new Schema<IStudent>(
       type: String,
       enum: ['Active', 'Inactive'],
       default: 'Active',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   {
